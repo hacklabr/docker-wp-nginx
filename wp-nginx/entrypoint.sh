@@ -64,6 +64,7 @@ server {
     location ~ \.php$ {
         include fastcgi_params;
         fastcgi_param  SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
+        fastcgi_param  PATH_TRANSLATED  \$document_root\$fastcgi_path_info;
 
         fastcgi_pass_header "X-Accel-Redirect";
         fastcgi_pass_header "X-Accel-Expires";
