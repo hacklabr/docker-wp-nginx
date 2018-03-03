@@ -12,7 +12,6 @@ netaddress=$(network $ip $mask)
 
 cat > /etc/nginx/conf.d/default.conf << EOF
 fastcgi_cache_path $CACHE_PATH levels=1:2 keys_zone=php_cache:100m inactive=1d;
-fastcgi_cache_key "$CACHE_KEY";
 resolver $RESOLVER;
 
 server {
@@ -69,6 +68,7 @@ server {
         fastcgi_pass_header "X-Accel-Redirect";
         fastcgi_pass_header "X-Accel-Expires";
 
+        fastcgi_cache_key "$CACHE_KEY";
         fastcgi_cache php_cache;
         fastcgi_cache_valid $CACHE_VALID;
         fastcgi_cache_bypass \$no_cache;
