@@ -15,7 +15,12 @@ ENV CACHE_USE_STALE="error timeout http_500 http_503"
 
 ENV WP_UPLOADS_LOCATION="/wp-content/uploads"
 
+RUN apt-get update \
+    && apt-get install -y iproute2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/*
+
 VOLUME ["${DOCUMENT_ROOT}", "${CACHE_PATH}"]
-COPY ["entrypoint.sh", "/entrypoint.sh"]
-ENTRYPOINT ["/entrypoint.sh"]
+COPY ["wp-nginx", "/wp-nginx"]
+ENTRYPOINT ["/wp-nginx/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

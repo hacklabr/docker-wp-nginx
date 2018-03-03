@@ -1,6 +1,14 @@
 #!/bin/bash
-
+source /wp-nginx/nettools.sh
 export RESOLVER="${RESOLVER:-$(awk '/^nameserver/{ print $2; exit; }' /etc/resolv.conf)}"
+
+ipaddr=$(
+    ip -4 -o addr show scope global \
+    | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+'
+)
+
+IFS='/' read -r ip mask <<< "$ipaddr"
+netaddress=$(network $ip $mask)
 
 cat > /etc/nginx/conf.d/default.conf << EOF
 fastcgi_cache_path $CACHE_PATH levels=1:2 keys_zone=php_cache:100m inactive=1d;
@@ -12,6 +20,10 @@ server {
 
     root $DOCUMENT_ROOT;
     index index.php index.html;
+
+    set_real_ip_from $netaddress/$mask;
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
 
     set \$no_cache 0;
     if (\$request_uri ~* "$CACHE_IGNORE_URI") {
@@ -41,7 +53,7 @@ server {
 
     location ^~ /status/ {
         stub_status on;
-        allow 127.0.0.1;
+        allow $netaddress/$mask;
         deny all;
     }
 
@@ -51,15 +63,10 @@ server {
 
     location ~ \.php$ {
         include fastcgi_params;
+        fastcgi_param  SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
 
         fastcgi_pass_header "X-Accel-Redirect";
         fastcgi_pass_header "X-Accel-Expires";
-
-        ##
-        ## Sometime you need to force
-        ##
-        #fastcgi_hide_header "Set-Cookie";
-        #fastcgi_ignore_headers "Cache-Control" "Expires" "Set-Cookie";
 
         fastcgi_cache php_cache;
         fastcgi_cache_valid $CACHE_VALID;
