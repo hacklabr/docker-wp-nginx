@@ -23,4 +23,5 @@ RUN apt-get update \
 VOLUME ["${DOCUMENT_ROOT}", "${CACHE_PATH}"]
 COPY ["wp-nginx", "/wp-nginx"]
 ENTRYPOINT ["/wp-nginx/entrypoint.sh"]
+WORKDIR "${DOCUMENT_ROOT}"
 CMD ["nginx", "-g", "daemon off;"]
