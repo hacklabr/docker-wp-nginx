@@ -17,6 +17,9 @@ ENV WP_UPLOADS_LOCATION="/wp-content/uploads"
 
 RUN apt-get update \
     && apt-get install -y iproute2 \
+    && userdel www-data \
+    && groupmod --gid 33 nginx \
+    && usermod --uid 33 --gid 33 nginx \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/*
 
